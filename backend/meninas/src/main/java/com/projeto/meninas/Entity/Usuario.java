@@ -3,23 +3,32 @@ package com.projeto.meninas.Entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+import java.util.UUID;
+
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "usuario")
+@Table(name = "tb_usuario")
 public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "usuario_id")
+    private UUID usuarioId;
 
-    private String nome;
+    @Column(unique = true)
+    private String username;
 
-    private String email;
+    private String password;
 
-    private String senha;
-
-    private String tipoUsuario;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "tb_usuario_roles",
+            joinColumns = @JoinColumn(name = "usuario_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles;
 }

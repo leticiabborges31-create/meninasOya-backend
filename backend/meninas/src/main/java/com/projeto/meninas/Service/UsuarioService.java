@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
@@ -14,47 +16,44 @@ public class UsuarioService {
 
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    // ✅ CADASTRAR USUÁRIO (CRIPTOGRAFANDO SENHA)
+    // ✅ CADASTRAR
     public Usuario salvarUsuario(Usuario usuario) {
-        usuario.setSenha(encoder.encode(usuario.getSenha()));
+        usuario.setPassword(encoder.encode(usuario.getPassword()));
         return repository.save(usuario);
     }
 
-    // ✅ BUSCAR POR EMAIL
-    public Usuario buscarUsuarioPorEmail(String email) {
-        return repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email não encontrado"));
+    // ✅ BUSCAR POR USERNAME
+    public Usuario buscarUsuarioPorUsername(String username) {
+        return repository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
     // ✅ DELETAR
-    public void deletarUsuarioPorEmail(String email) {
-        repository.deleteByEmail(email);
+    public void deletarUsuarioPorUsername(String username) {
+        Usuario usuario = repository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+        repository.delete(usuario);
     }
 
-    // ✅ ATUALIZAR (COM SEGURANÇA NA SENHA)
-    public Usuario atualizarUsuarioPorId(Long id, Usuario usuario) {
+    // ✅ ATUALIZAR
+    public Usuario atualizarUsuarioPorId(UUID id, Usuario usuario) {
         Usuario entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuario.getNome() != null) entity.setNome(usuario.getNome());
-        if (usuario.getEmail() != null) entity.setEmail(usuario.getEmail());
+        if (usuario.getUsername() != null)
+            entity.setUsername(usuario.getUsername());
 
-        // 🔐 CRIPTOGRAFA SE ALTERAR SENHA
-        if (usuario.getSenha() != null) {
-            entity.setSenha(encoder.encode(usuario.getSenha()));
-        }
-
-        if (usuario.getTipoUsuario() != null) {
-            entity.setTipoUsuario(usuario.getTipoUsuario());
-        }
+        if (usuario.getPassword() != null)
+            entity.setPassword(encoder.encode(usuario.getPassword()));
 
         return repository.save(entity);
     }
 
-    // ✅ LOGIN SEGURO
-    public boolean autenticar(String email, String senha) {
-        return repository.findByEmail(email)
-                .map(u -> encoder.matches(senha, u.getSenha()))
+    // ✅ LOGIN
+    public boolean autenticar(String username, String password) {
+        return repository.findByUsername(username)
+                .map(u -> encoder.matches(password, u.getPassword()))
                 .orElse(false);
     }
 }

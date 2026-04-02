@@ -1,13 +1,13 @@
 package com.projeto.meninas.Controller;
 
 import com.projeto.meninas.Entity.Usuario;
-import com.projeto.meninas.Security.JwtUtil;
 import com.projeto.meninas.Service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -16,7 +16,6 @@ import java.util.Map;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
-    private final JwtUtil jwtUtil;
 
     // ✅ CADASTRO
     @PostMapping
@@ -25,40 +24,22 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-    // ✅ LOGIN COM TOKEN
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-
-        boolean autenticado = usuarioService.autenticar(
-                body.get("email"),
-                body.get("senha")
-        );
-
-        if (!autenticado) {
-            return ResponseEntity.status(401).body("Email ou senha inválidos");
-        }
-
-        String token = jwtUtil.gerarToken(body.get("email"));
-
-        return ResponseEntity.ok(Map.of("token", token));
-    }
-
     // ✅ BUSCAR
     @GetMapping
-    public ResponseEntity<Usuario> buscarPorEmail(@RequestParam String email) {
-        return ResponseEntity.ok(usuarioService.buscarUsuarioPorEmail(email));
+    public ResponseEntity<Usuario> buscarPorUsername(@RequestParam String username) {
+        return ResponseEntity.ok(usuarioService.buscarUsuarioPorUsername(username));
     }
 
     // ✅ DELETAR
     @DeleteMapping
-    public ResponseEntity<Void> deletar(@RequestParam String email) {
-        usuarioService.deletarUsuarioPorEmail(email);
+    public ResponseEntity<Void> deletar(@RequestParam String username) {
+        usuarioService.deletarUsuarioPorUsername(username);
         return ResponseEntity.ok().build();
     }
 
     // ✅ ATUALIZAR
     @PutMapping
-    public ResponseEntity<Usuario> atualizar(@RequestParam Long id, @RequestBody Usuario usuario) {
+    public ResponseEntity<Usuario> atualizar(@RequestParam UUID id, @RequestBody Usuario usuario) {
         return ResponseEntity.ok(usuarioService.atualizarUsuarioPorId(id, usuario));
     }
 }

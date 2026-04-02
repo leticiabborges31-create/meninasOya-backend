@@ -4,13 +4,11 @@ import com.projeto.meninas.Entity.Usuario;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.projeto.meninas.Entity.Role;
 import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, UUID> {
+public interface RoleRepository extends JpaRepository<Role, Long> {
 
-    Optional<Usuario> findByUsername(String username);
-
-    void deleteByUsername(String username);
 }
