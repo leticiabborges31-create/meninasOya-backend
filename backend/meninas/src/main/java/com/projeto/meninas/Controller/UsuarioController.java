@@ -33,7 +33,7 @@ public class UsuarioController {
     // =========================
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        String token = usuarioService.login(request);
+        String token = usuarioService.autenticar(request);
         return ResponseEntity.ok(new LoginResponse(token));
     }
 
@@ -47,7 +47,7 @@ public class UsuarioController {
     }
 
     // =========================
-    // DELETAR
+    // DELETAR-
     // =========================
     @DeleteMapping
     public ResponseEntity<Void> deletar(@RequestParam String username) {
