@@ -39,7 +39,7 @@ public class SecurityConfig {
 
         http
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/login", "/usuarios").permitAll() // 🔥 libera login
+                        .requestMatchers("/auth/**", "/usuarios/**", "/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
