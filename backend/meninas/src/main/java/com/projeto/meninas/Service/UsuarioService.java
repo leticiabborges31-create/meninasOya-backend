@@ -21,7 +21,7 @@ public class UsuarioService {
 
     private final UsuarioRepository repository;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder encoder ;
     private final JwtEncoder jwtEncoder;
 
     // ==========================
@@ -70,10 +70,10 @@ public class UsuarioService {
     // LOGIN
     // ==========================
     public String autenticar(LoginRequest request) {
-        Usuario usuario = repository.findByUsername(request.getUsername())
+        Usuario usuario = repository.findByUsername(request.username())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (!encoder.matches(request.getPassword(), usuario.getPassword())) {
+        if (!encoder.matches(request.password(), usuario.getPassword())) {
             throw new RuntimeException("Senha inválida");
         }
 

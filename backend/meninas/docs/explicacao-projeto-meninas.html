@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Explicacao do Projeto Meninas</title>
+  <style>
+    :root {
+      --bg: #f6f1e8;
+      --paper: #fffdf8;
+      --ink: #1f1f1f;
+      --muted: #6b6257;
+      --accent: #9c4f2d;
+      --line: #ddd2c4;
+      --code: #f2e9dc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Georgia", "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #efe2cf 0, transparent 28%),
+        linear-gradient(180deg, #f8f3eb 0%, var(--bg) 100%);
+    }
+    .page {
+      width: 900px;
+      margin: 28px auto;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      box-shadow: 0 18px 50px rgba(60, 34, 16, 0.08);
+      padding: 44px 56px;
+    }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      color: #2b2017;
+    }
+    h1 {
+      font-size: 34px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+    h2 {
+      font-size: 24px;
+      margin-top: 28px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    h3 {
+      font-size: 18px;
+      margin-top: 18px;
+    }
+    p, li {
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0 0 10px;
+    }
+    ul {
+      margin: 0 0 12px 22px;
+      padding: 0;
+    }
+    code {
+      background: var(--code);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 13px;
+    }
+    .lead {
+      font-size: 17px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      background: #fffaf2;
+      padding: 14px 16px;
+      border-radius: 10px;
+    }
+    .small {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .flow {
+      border-left: 4px solid var(--accent);
+      background: #fbf3e8;
+      padding: 10px 14px;
+      margin: 12px 0;
+    }
+    .footer {
+      margin-top: 32px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Projeto Meninas</h1>
+    <p class="lead">
+      Documento de explicacao funcional e tecnica do backend Spring Boot do projeto <code>meninas</code>.
+      O foco aqui e explicar como o sistema esta organizado, como os dados circulam e qual e o papel de cada classe principal.
+    </p>
+
+    <h2>1. Visao Geral</h2>
+    <p>
+      Este projeto e um backend em Java com Spring Boot, conectado a PostgreSQL, que expoe endpoints HTTP para autenticar usuarios,
+      cadastrar usuarios, publicar tweets e cadastrar atividades com foto. Ele usa JWT para autenticar chamadas protegidas.
+    </p>
+    <div class="grid">
+      <div class="card">
+        <h3>Tecnologias</h3>
+        <ul>
+          <li>Spring Boot 3.4.1</li>
+          <li>Spring Web</li>
+          <li>Spring Security</li>
+          <li>OAuth2 Resource Server</li>
+          <li>Spring Data JPA</li>
+          <li>PostgreSQL</li>
+          <li>Lombok</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Objetivo do backend</h3>
+        <ul>
+          <li>Autenticar usuarios por token</li>
+          <li>Controlar acesso por role</li>
+          <li>Persistir usuarios, roles, tweets, atividades e fotos</li>
+          <li>Expor API para frontend ou Postman</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2>2. Estrutura do Projeto</h2>
+    <p>O codigo esta dividido em pacotes com papeis bem definidos:</p>
+    <ul>
+      <li><code>Config</code>: configuracoes de seguranca, token e bootstrap do admin.</li>
+      <li><code>Controller</code>: endpoints REST expostos pela aplicacao.</li>
+      <li><code>Controller.dto</code>: objetos de entrada e saida da API.</li>
+      <li><code>Entity</code>: mapeamentos JPA das tabelas do banco.</li>
+      <li><code>Repository</code>: acesso aos dados com Spring Data JPA.</li>
+      <li><code>Service</code>: regras de negocio mais concentradas.</li>
+      <li><code>Util</code>: utilitarios auxiliares, como geracao de chave.</li>
+    </ul>
+
+    <h2>3. Dependencias Principais</h2>
+    <p>
+      O arquivo <code>pom.xml</code> define as bibliotecas do projeto. As principais sao:
+    </p>
+    <ul>
+      <li><code>spring-boot-starter-web</code>: cria a API HTTP.</li>
+      <li><code>spring-boot-starter-security</code>: aplica autenticacao e autorizacao.</li>
+      <li><code>spring-boot-starter-oauth2-resource-server</code>: valida JWT nas rotas protegidas.</li>
+      <li><code>spring-boot-starter-data-jpa</code>: mapeia objetos Java para tabelas SQL.</li>
+      <li><code>postgresql</code>: driver de conexao com o banco.</li>
+      <li><code>lombok</code>: reduz codigo repetitivo em getters, setters e construtores.</li>
+    </ul>
+
+    <h2>4. Classe Inicial</h2>
+    <h3><code>MeninasApplication</code></h3>
+    <p>
+      E a porta de entrada da aplicacao. Quando o programa sobe, o Spring Boot inicia o contexto, monta todos os beans,
+      conecta no banco e registra as rotas HTTP.
+    </p>
+
+    <h2>5. Configuracao e Seguranca</h2>
+    <h3><code>SecurityConfig</code></h3>
+    <p>Esta classe define as regras de seguranca do sistema.</p>
+    <ul>
+      <li>Libera sem login os endpoints <code>POST /login</code> e <code>POST /token</code>.</li>
+      <li>Exige autenticacao nas outras rotas.</li>
+      <li>Desliga CSRF porque a API esta stateless.</li>
+      <li>Configura o backend para validar JWT em todas as chamadas protegidas.</li>
+      <li>Cria os beans <code>JwtEncoder</code>, <code>JwtDecoder</code> e <code>BCryptPasswordEncoder</code>.</li>
+    </ul>
+
+    <div class="flow">
+      Fluxo de seguranca: o usuario pede um token em <code>/token</code>, recebe um JWT e usa esse JWT como
+      <code>Bearer Token</code> para acessar rotas protegidas como <code>/tweets</code>.
+    </div>
+
+    <h3><code>TokenConfig</code></h3>
+    <p>
+      Guarda parametros do token, como emissor e tempo de expiracao. Hoje ele fornece:
+    </p>
+    <ul>
+      <li><code>jwt.issuer</code>: emissor do token, padrao <code>meninas-api</code>.</li>
+      <li><code>jwt.expires-in</code>: tempo de vida em segundos, padrao <code>3600</code>.</li>
+    </ul>
+
+    <h3><code>AdminUserConfig</code></h3>
+    <p>
+      Roda na inicializacao da aplicacao. O objetivo e garantir que existam as roles basicas e que o usuario
+      administrador exista ou seja atualizado.
+    </p>
+    <ul>
+      <li>Cria <code>ROLE_ADMIN</code> e <code>ROLE_BASIC</code> se faltarem.</li>
+      <li>Procura o usuario admin pelo username configurado.</li>
+      <li>Atualiza a senha do admin e garante que ele tenha role de administrador.</li>
+    </ul>
+    <p class="small">
+      Observacao: para ambiente de producao, a senha do admin nao deveria ficar no <code>application.properties</code>.
+      O ideal seria variavel de ambiente.
+    </p>
+
+    <h2>6. Entidades do Banco</h2>
+    <h3><code>Usuario</code></h3>
+    <p>Representa um usuario do sistema.</p>
+    <ul>
+      <li><code>usuarioId</code>: identificador UUID.</li>
+      <li><code>username</code>: nome unico do usuario.</li>
+      <li><code>password</code>: senha criptografada com BCrypt.</li>
+      <li><code>roles</code>: conjunto de permissoes do usuario.</li>
+    </ul>
+    <p>
+      Tambem possui o metodo <code>isLoginCorrect</code>, que compara a senha enviada no login com a senha criptografada no banco.
+    </p>
+
+    <h3><code>Role</code></h3>
+    <p>
+      Representa os perfis de acesso. Hoje existem dois valores definidos:
+    </p>
+    <ul>
+      <li><code>ROLE_ADMIN</code>: administrador.</li>
+      <li><code>ROLE_BASIC</code>: usuario comum.</li>
+    </ul>
+
+    <h3><code>Tweet</code></h3>
+    <p>
+      Representa uma postagem curta feita por um usuario autenticado.
+    </p>
+    <ul>
+      <li><code>tweetId</code>: id gerado por sequencia.</li>
+      <li><code>usuario</code>: dono do tweet.</li>
+      <li><code>content</code>: texto de ate 280 caracteres.</li>
+      <li><code>creationTimestamp</code>: data de criacao gerada automaticamente.</li>
+    </ul>
+
+    <h3><code>Atividade</code></h3>
+    <p>
+      Representa uma atividade que sera exibida no sistema. Ela funciona como um conteudo mais rico que o tweet.
+    </p>
+    <ul>
+      <li><code>titulo</code>: nome da atividade.</li>
+      <li><code>descricao</code>: descricao detalhada.</li>
+      <li><code>data</code>: data textual da atividade.</li>
+      <li><code>fotoNomeArquivo</code>: nome original do arquivo.</li>
+      <li><code>fotoContentType</code>: tipo MIME da imagem.</li>
+      <li><code>fotoDados</code>: bytes binarios da imagem.</li>
+    </ul>
+    <p>
+      O campo <code>fotoDados</code> esta com <code>@JsonIgnore</code>, para a listagem de atividades nao devolver o binario inteiro em JSON.
+    </p>
+
+    <h3><code>Foto</code></h3>
+    <p>
+      Existe uma entidade separada para foto, ligada a atividade, mas no estado atual do projeto a logica principal de foto em atividade
+      ficou centralizada na propria entidade <code>Atividade</code>. A entidade <code>Foto</code> ainda existe, mas esta subutilizada.
+    </p>
+
+    <h2>7. Repositories</h2>
+    <p>
+      Os repositories fazem o acesso ao banco sem precisar escrever SQL manual na maior parte do tempo.
+    </p>
+    <ul>
+      <li><code>UsuarioRepository</code>: busca, salva e remove usuarios.</li>
+      <li><code>RoleRepository</code>: busca roles por nome.</li>
+      <li><code>TweetRepository</code>: salva e consulta tweets.</li>
+      <li><code>AtividadeRepository</code>: salva e consulta atividades.</li>
+      <li><code>FotoRepository</code>: salva e consulta fotos.</li>
+    </ul>
+
+    <h2>8. Services</h2>
+    <h3><code>UsuarioService</code></h3>
+    <p>
+      Concentra logica de usuario: salvar, buscar, atualizar, deletar e autenticar. Ele tambem possui um gerador de token proprio.
+      Hoje existe uma sobreposicao entre <code>UsuarioService</code> e <code>TokenController</code>, porque os dois lidam com login/JWT.
+    </p>
+    <p class="small">
+      Observacao: arquiteturalmente, o projeto ficaria mais limpo se a geracao de token estivesse em um unico lugar.
+    </p>
+
+    <h3><code>AtividadeService</code></h3>
+    <p>
+      Faz o CRUD basico de atividade: salvar, listar, buscar por id e deletar.
+    </p>
+
+    <h3><code>FotoService</code></h3>
+    <p>
+      Faz o CRUD basico de foto, mas atualmente o fluxo de atividade com foto foi simplificado para salvar a imagem diretamente em <code>Atividade</code>.
+    </p>
+
+    <h2>9. Controllers e Rotas</h2>
+    <h3><code>TokenController</code></h3>
+    <p>Responsavel pelo endpoint <code>POST /token</code>.</p>
+    <ul>
+      <li>Recebe <code>username</code> e <code>password</code>.</li>
+      <li>Busca o usuario no banco.</li>
+      <li>Valida a senha com BCrypt.</li>
+      <li>Monta o claim <code>scope</code> a partir das roles do usuario.</li>
+      <li>Gera e devolve o JWT.</li>
+    </ul>
+
+    <div class="flow">
+      Exemplo de uso: <code>POST /token</code> com JSON de login. A resposta devolve <code>accesstoken</code> e <code>expiresIn</code>.
+    </div>
+
+    <h3><code>UsuarioController</code></h3>
+    <ul>
+      <li><code>POST /usuario</code>: cria usuario novo com role basica.</li>
+      <li><code>GET /usuario</code>: lista usuarios, mas exige <code>SCOPE_ADMIN</code>.</li>
+    </ul>
+
+    <h3><code>TweetController</code></h3>
+    <ul>
+      <li><code>POST /tweets</code>: cria tweet para o usuario autenticado.</li>
+    </ul>
+    <p>
+      O controller extrai o id do usuario a partir do token JWT, busca o usuario no banco e salva o tweet ligado a ele.
+    </p>
+
+    <h3><code>AtividadeController</code></h3>
+    <ul>
+      <li><code>POST /atividades</code>: cria atividade com titulo, descricao, data e foto opcional via <code>form-data</code>.</li>
+      <li><code>GET /atividades</code>: lista atividades.</li>
+      <li><code>GET /atividades/{id}/foto</code>: devolve a imagem da atividade.</li>
+      <li><code>DELETE /atividades/{id}</code>: remove atividade.</li>
+    </ul>
+    <p>
+      Esta parte ficou conceitualmente parecida com tweet, mas com mais campos e suporte a imagem.
+    </p>
+
+    <h3><code>AuthController</code></h3>
+    <p>
+      Existe um controller adicional para <code>/login</code> com validacao simplificada baseada em usuario fixo. Ele convive com
+      <code>/token</code>, mas no estado atual o endpoint mais coerente com o restante do projeto e <code>/token</code>.
+    </p>
+
+    <h3><code>FotoController</code>, <code>CronogramaController</code> e <code>ExposicaoController</code></h3>
+    <p>
+      Sao endpoints auxiliares. <code>ExposicaoController</code> reutiliza as atividades como conteudo de exibicao.
+      <code>FotoController</code> continua existindo para a entidade <code>Foto</code>.
+    </p>
+
+    <h2>10. Fluxos Principais</h2>
+    <h3>Fluxo de Login</h3>
+    <div class="flow">
+      1. Cliente envia <code>POST /token</code> com usuario e senha.<br>
+      2. O backend valida a senha no banco.<br>
+      3. O backend gera um JWT com <code>sub</code>, <code>scope</code>, <code>iss</code> e expiracao.<br>
+      4. O cliente usa esse JWT como <code>Bearer Token</code>.
+    </div>
+
+    <h3>Fluxo de Tweet</h3>
+    <div class="flow">
+      1. Cliente faz login e recebe token.<br>
+      2. Cliente envia <code>POST /tweets</code> com <code>content</code>.<br>
+      3. O backend identifica o usuario pelo token.<br>
+      4. O tweet e salvo ligado ao usuario.
+    </div>
+
+    <h3>Fluxo de Atividade com Foto</h3>
+    <div class="flow">
+      1. Cliente envia <code>POST /atividades</code> como <code>form-data</code>.<br>
+      2. O backend recebe titulo, descricao, data e arquivo de foto.<br>
+      3. A atividade e salva no banco com metadados da foto e bytes da imagem.<br>
+      4. O cliente pode listar tudo em <code>GET /atividades</code>.<br>
+      5. O cliente pode carregar a imagem em <code>GET /atividades/{id}/foto</code>.
+    </div>
+
+    <h2>11. application.properties</h2>
+    <p>As configuracoes principais atuais sao:</p>
+    <ul>
+      <li><code>server.port=8080</code></li>
+      <li>conexao PostgreSQL para banco <code>Meninas</code></li>
+      <li>chaves RSA para JWT em <code>classpath:chave_privada.pem</code> e <code>classpath:chave_publica.pem</code></li>
+      <li>bootstrap do admin com <code>admin.username</code> e <code>admin.password</code></li>
+    </ul>
+
+    <h2>12. Pontos Fortes do Projeto</h2>
+    <ul>
+      <li>JWT funcionando para autenticacao.</li>
+      <li>Integracao com PostgreSQL funcional.</li>
+      <li>Persistencia de tweet e atividade funcionando.</li>
+      <li>Protecao de endpoints com role de administrador.</li>
+      <li>Estrutura em camadas ja existe e esta compreensivel.</li>
+    </ul>
+
+    <h2>13. Pontos a Melhorar</h2>
+    <ul>
+      <li>Consolidar login em um unico fluxo, preferencialmente <code>/token</code>.</li>
+      <li>Tirar a senha do admin do arquivo e mover para variavel de ambiente.</li>
+      <li>Decidir entre usar a entidade <code>Foto</code> ou manter a foto dentro de <code>Atividade</code>, para evitar duplicidade conceitual.</li>
+      <li>Padronizar encoding dos arquivos para UTF-8 limpo.</li>
+      <li>Adicionar testes automatizados de login, tweet e atividade.</li>
+      <li>Criar endpoints de listagem e detalhe para tweets.</li>
+    </ul>
+
+    <h2>14. Resumo Final</h2>
+    <p>
+      O projeto Meninas e um backend Java com Spring Boot voltado para autenticacao com JWT e persistencia de conteudo.
+      O modelo atual permite:
+    </p>
+    <ul>
+      <li>criar usuarios e roles</li>
+      <li>autenticar por token</li>
+      <li>publicar tweets</li>
+      <li>cadastrar atividades com imagem</li>
+      <li>consultar o conteudo salvo no PostgreSQL</li>
+    </ul>
+    <p>
+      Em termos de arquitetura, ele ja tem as pecas fundamentais de uma API moderna: configuracao, controller, service,
+      repository, entidade, seguranca e integracao com banco.
+    </p>
+
+    <div class="footer">
+      Documento gerado a partir do estado atual do workspace em 11/04/2026.
+    </div>
+  </div>
+</body>
+</html>

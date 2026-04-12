@@ -1,11 +1,7 @@
 package com.projeto.meninas.Repository;
 
-
-import com.projeto.meninas.Entity.Usuario;
+import com.projeto.meninas.Entity.Tweet;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.UUID;
-
-public interface TweetRepository extends JpaRepository<Usuario, UUID>{
-
+public interface TweetRepository extends JpaRepository<Tweet, Long> {
 }

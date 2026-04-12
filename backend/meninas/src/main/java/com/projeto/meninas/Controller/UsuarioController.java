@@ -1,66 +1,61 @@
 package com.projeto.meninas.Controller;
 
+import com.projeto.meninas.Controller.dto.CreateUserDto;
+import com.projeto.meninas.Entity.Role;
 import com.projeto.meninas.Entity.Usuario;
-import com.projeto.meninas.Service.UsuarioService;
-import com.projeto.meninas.Controller.dto.LoginRequest;
-import com.projeto.meninas.Controller.dto.LoginResponse;
+import com.projeto.meninas.Repository.RoleRepository;
+import com.projeto.meninas.Repository.UsuarioRepository;
 
-import lombok.RequiredArgsConstructor;
+import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @RestController
-@RequestMapping("/usuarios")
-@RequiredArgsConstructor
-@CrossOrigin("*")
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
+    private final UsuarioRepository usuarioRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    // =========================
-    // CADASTRO
-    // =========================
-    @PostMapping
-    public ResponseEntity<Void> salvarUsuario(@RequestBody Usuario usuario) {
-        usuarioService.salvarUsuario(usuario);
+    public UsuarioController(UsuarioRepository usuarioRepository,
+                             RoleRepository roleRepository ) {
+        this.usuarioRepository = usuarioRepository;
+        this.roleRepository = roleRepository;
+        this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    }
+    @Transactional
+    @PostMapping("/usuario")
+    public ResponseEntity<Void> newUser(@RequestBody CreateUserDto dto){
+        var basicRole = roleRepository.findByName(Role.Values.ROLE_BASIC.name())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Role ROLE_BASIC nao encontrada"));
+        var usuarioFromDb = usuarioRepository.findByUsername(dto.username());
+        if(usuarioFromDb.isPresent()){
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+        var usuario = new Usuario();
+        usuario.setUsername(dto.username());
+        usuario.setPassword(bCryptPasswordEncoder.encode(dto.password()));
+        usuario.setRoles(new HashSet<>(Set.of(basicRole)));
+
+
+
+        usuarioRepository.save(usuario);
         return ResponseEntity.ok().build();
     }
 
-    // =========================
-    // LOGIN
-    // =========================
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        String token = usuarioService.autenticar(request);
-        return ResponseEntity.ok(new LoginResponse(token));
-    }
-
-    // =========================
-    // BUSCAR POR USERNAME
-    // =========================
-    @GetMapping
-    public ResponseEntity<Usuario> buscarPorUsername(@RequestParam String username) {
-        Usuario usuario = usuarioService.buscarUsuarioPorUsername(username);
+    @GetMapping("/usuario")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<List<Usuario>> listUsers(){
+        var usuario = usuarioRepository.findAll();
         return ResponseEntity.ok(usuario);
     }
 
-    // =========================
-    // DELETAR-
-    // =========================
-    @DeleteMapping
-    public ResponseEntity<Void> deletar(@RequestParam String username) {
-        usuarioService.deletarUsuarioPorUsername(username);
-        return ResponseEntity.ok().build();
-    }
-
-    // =========================
-    // ATUALIZAR
-    // =========================
-    @PutMapping
-    public ResponseEntity<Usuario> atualizar(@RequestParam UUID id, @RequestBody Usuario usuario) {
-        Usuario atualizado = usuarioService.atualizarUsuarioPorId(id, usuario);
-        return ResponseEntity.ok(atualizado);
-    }
 }
