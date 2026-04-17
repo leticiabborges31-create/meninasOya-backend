@@ -31,11 +31,12 @@ public class UsuarioController {
         this.roleRepository = roleRepository;
         this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
     }
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     @Transactional
     @PostMapping("/usuario")
     public ResponseEntity<Void> newUser(@RequestBody CreateUserDto dto){
-        var basicRole = roleRepository.findByName(Role.Values.ROLE_BASIC.name())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Role ROLE_BASIC nao encontrada"));
+        var roleFromDb = roleRepository.findByName(dto.role())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role não encontrada"));
         var usuarioFromDb = usuarioRepository.findByUsername(dto.username());
         if(usuarioFromDb.isPresent()){
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY);
@@ -43,9 +44,7 @@ public class UsuarioController {
         var usuario = new Usuario();
         usuario.setUsername(dto.username());
         usuario.setPassword(bCryptPasswordEncoder.encode(dto.password()));
-        usuario.setRoles(new HashSet<>(Set.of(basicRole)));
-
-
+        usuario.setRoles(new HashSet<>(Set.of(roleFromDb)));
 
         usuarioRepository.save(usuario);
         return ResponseEntity.ok().build();

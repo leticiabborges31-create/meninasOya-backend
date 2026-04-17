@@ -14,14 +14,17 @@ public class FotoService {
     private final FotoRepository repository;
 
     public Foto salvarFoto(Foto foto) {
+
         return repository.save(foto);
     }
 
     public List<Foto> listarFotos() {
+
         return repository.findAll();
     }
 
     public void deletarFoto(Long id) {
+
         repository.deleteById(id);
     }
 }
