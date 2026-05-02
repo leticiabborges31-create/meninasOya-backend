@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/atividades")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class AtividadeController {
 
     private final AtividadeService atividadeService;

@@ -25,7 +25,6 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/usuarios")
-@CrossOrigin("http://localhost:5173")
 public class UsuarioController {
 
     private final UsuarioRepository usuarioRepository;

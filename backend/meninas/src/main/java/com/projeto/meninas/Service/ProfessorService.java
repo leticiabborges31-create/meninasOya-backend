@@ -3,6 +3,7 @@ package com.projeto.meninas.Service;
 import com.projeto.meninas.Controller.dto.ProfessorRequestDto;
 import com.projeto.meninas.Controller.dto.ProfessorUpdateDto;
 import com.projeto.meninas.Entity.Professor;
+import com.projeto.meninas.Entity.ProfessorStatus;
 import com.projeto.meninas.Entity.Role;
 import com.projeto.meninas.Entity.Usuario;
 import com.projeto.meninas.Repository.ProfessorRepository;
@@ -34,6 +35,10 @@ public class ProfessorService {
         return professorRepository.findByNomeContainingIgnoreCase(q);
     }
 
+    public List<Professor> listarPorStatus(ProfessorStatus status) {
+        return professorRepository.findByStatus(status);
+    }
+
     public Professor buscarPorId(Long id) {
         return professorRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Professor nao encontrado"));
@@ -44,8 +49,30 @@ public class ProfessorService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Professor nao encontrado"));
     }
 
+    /** Criado por um ADMIN — ja sai aprovado. */
     public Professor criar(ProfessorRequestDto dto) {
+        return persistirNovo(dto, ProfessorStatus.APROVADO);
+    }
+
+    public Professor cadastrarPendente(ProfessorRequestDto dto) {
+        return persistirNovo(dto, ProfessorStatus.PENDENTE);
+    }
+
+    public Professor aprovar(Long id) {
+        Professor professor = buscarPorId(id);
+        professor.setStatus(ProfessorStatus.APROVADO);
+        return professorRepository.save(professor);
+    }
+
+    public Professor rejeitar(Long id) {
+        Professor professor = buscarPorId(id);
+        professor.setStatus(ProfessorStatus.REJEITADO);
+        return professorRepository.save(professor);
+    }
+
+    private Professor persistirNovo(ProfessorRequestDto dto, ProfessorStatus status) {
         validarEmailDisponivel(dto.email(), null);
+        validarCpfDisponivel(dto.cpf(), null);
 
         Role roleProfessor = roleRepository.findByName(Role.Values.ROLE_PROFESSOR.name())
                 .orElseGet(() -> roleRepository.save(new Role(Role.Values.ROLE_PROFESSOR.name())));
@@ -58,11 +85,13 @@ public class ProfessorService {
 
         Professor professor = Professor.builder()
                 .email(dto.email().trim().toLowerCase())
+                .cpf(dto.cpf().replaceAll("\\D", ""))
                 .nome(dto.nome())
                 .idade(dto.idade())
                 .uf(dto.uf().trim().toUpperCase())
                 .escola(dto.escola())
                 .linkCurriculoLattes(dto.linkCurriculoLattes())
+                .status(status)
                 .usuario(usuario)
                 .build();
 
@@ -102,6 +131,13 @@ public class ProfessorService {
         return professorRepository.save(existente);
     }
 
+    public void resetarSenha(Long id, String novaSenha) {
+        Professor professor = buscarPorId(id);
+        Usuario usuario = professor.getUsuario();
+        usuario.setPassword(passwordEncoder.encode(novaSenha));
+        usuarioRepository.save(usuario);
+    }
+
     public void deletar(Long id) {
         Professor existente = buscarPorId(id);
         Usuario usuario = existente.getUsuario();
@@ -114,9 +150,19 @@ public class ProfessorService {
         return professor.getId().equals(professorId);
     }
 
+    private void validarCpfDisponivel(String cpfRaw, Long professorIdIgnorado) {
+        if (cpfRaw == null) return;
+        String cpf = cpfRaw.replaceAll("\\D", "");
+        professorRepository.findByCpf(cpf)
+                .filter(professor -> professorIdIgnorado == null || !professor.getId().equals(professorIdIgnorado))
+                .ifPresent(professor -> {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "CPF ja cadastrado");
+                });
+    }
+
     private void validarEmailDisponivel(String email, Long professorIdIgnorado) {
         professorRepository.findByEmailIgnoreCase(email)
-                .filter(professor -> !professor.getId().equals(professorIdIgnorado))
+                .filter(professor -> professorIdIgnorado == null || !professor.getId().equals(professorIdIgnorado))
                 .ifPresent(professor -> {
                     throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Email ja cadastrado para professor");
                 });
@@ -131,3 +177,4 @@ public class ProfessorService {
                 });
     }
 }
+
