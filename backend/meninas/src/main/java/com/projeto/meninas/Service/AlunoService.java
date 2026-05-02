@@ -35,10 +35,18 @@ public class AlunoService {
     public Aluno atualizar(Long id, Aluno aluno) {
         Aluno existente = buscarPorId(id);
 
-        existente.setNome(aluno.getNome());
-        existente.setIdade(aluno.getIdade());
-        existente.setUf(aluno.getUf());
-        existente.setEscola(aluno.getEscola());
+        if (aluno.getNome() != null) {
+            existente.setNome(aluno.getNome());
+        }
+        if (aluno.getIdade() != null) {
+            existente.setIdade(aluno.getIdade());
+        }
+        if (aluno.getEstado() != null) {
+            existente.setEstado(aluno.getEstado());
+        }
+        if (aluno.getEscola() != null) {
+            existente.setEscola(aluno.getEscola());
+        }
 
         return alunoRepository.save(existente);
     }

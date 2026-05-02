@@ -3,14 +3,12 @@ package com.projeto.meninas.Service;
 import com.projeto.meninas.Controller.dto.LoginRequest;
 import com.projeto.meninas.Entity.Usuario;
 import com.projeto.meninas.Repository.UsuarioRepository;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -20,81 +18,42 @@ import java.util.UUID;
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+    private final BCryptPasswordEncoder encoder;
 
-    private final BCryptPasswordEncoder encoder ;
-    private final JwtEncoder jwtEncoder;
-
-    // ==========================
-    // CADASTRAR
-    // ==========================
+    // ✅ CADASTRAR
     public Usuario salvarUsuario(Usuario usuario) {
-        usuario.setPassword(encoder.encode(usuario.getPassword()));
+        if (usuario.getPassword() != null && !usuario.getPassword().startsWith("$2a$")) {
+            usuario.setPassword(encoder.encode(usuario.getPassword()));
+        }
         return repository.save(usuario);
     }
 
-    // ==========================
-    // BUSCAR POR USERNAME
-    // ==========================
+    // ✅ BUSCAR
     public Usuario buscarUsuarioPorUsername(String username) {
         return repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
-    // ==========================
-    // DELETAR
-    // ==========================
+    // ✅ DELETAR
     public void deletarUsuarioPorUsername(String username) {
         Usuario usuario = repository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
         repository.delete(usuario);
     }
 
-    // ==========================
-    // ATUALIZAR
-    // ==========================
+    // ✅ ATUALIZAR
     public Usuario atualizarUsuarioPorId(UUID id, Usuario usuario) {
         Usuario entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuario.getUsername() != null)
+        if (usuario.getUsername() != null && !usuario.getUsername().isBlank()) {
             entity.setUsername(usuario.getUsername());
-
-        if (usuario.getPassword() != null)
-            entity.setPassword(encoder.encode(usuario.getPassword()));
-
-        return repository.save(entity);
-    }
-
-    // ==========================
-    // LOGIN
-    // ==========================
-    public String autenticar(LoginRequest request) {
-        Usuario usuario = repository.findByUsername(request.username())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        if (!encoder.matches(request.password(), usuario.getPassword())) {
-            throw new RuntimeException("Senha inválida");
         }
 
-        return gerarToken(usuario);
-    }
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
+            entity.setPassword(encoder.encode(usuario.getPassword()));
+        }
 
-    // ==========================
-    // GERAR JWT
-    // ==========================
-    private String gerarToken(Usuario usuario) {
-        Instant now = Instant.now();
-        long expiry = 3600L; // 1 hora
-
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer("Meninas")
-                .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiry))
-                .subject(usuario.getUsername())
-                .claim("role", usuario.getRoles())
-                .build();
-
-        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+        return repository.save(entity);
     }
 }

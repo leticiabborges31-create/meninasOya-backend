@@ -1,19 +1,28 @@
 package com.projeto.meninas.Entity;
 
-import com.projeto.meninas.Controller.dto.LoginRequest;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import com.projeto.meninas.Controller.dto.LoginRequest;
 
 import java.util.Set;
 import java.util.UUID;
+
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tb_usuario")
+@Table(
+        name = "tb_usuario",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = "username", name = "uk_usuario_username")
+        }
+)
 public class Usuario {
 
     @Id
@@ -21,9 +30,11 @@ public class Usuario {
     @Column(name = "usuario_id")
     private UUID usuarioId;
 
-    @Column(unique = true)
+    // ✅ Melhor usar @Column com unique e nullable
+    @Column(name = "username", unique = true, nullable = false, length = 100)
     private String username;
 
+    @Column(name = "password", nullable = false)
     private String password;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -34,40 +45,11 @@ public class Usuario {
     )
     private Set<Role> roles;
 
-    public UUID getUserId() {
-        return usuarioId;
-    }
-
-    public void setUserId(UUID userId) {
-        this.usuarioId = userId;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public Set<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(Set<Role> roles) {
-        this.roles = roles;
-    }
-
+    // ✅ Método para validar senha
     public boolean isLoginCorrect(LoginRequest loginRequest, PasswordEncoder passwordEncoder) {
-        return passwordEncoder.matches(loginRequest.password(), this.password);
+        return passwordEncoder.matches(
+                loginRequest.getPassword(),
+                this.password
+        );
     }
 }
-

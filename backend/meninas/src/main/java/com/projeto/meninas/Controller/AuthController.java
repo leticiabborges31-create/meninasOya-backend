@@ -5,15 +5,15 @@ import com.projeto.meninas.Controller.dto.LoginResponse;
 import com.projeto.meninas.Service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
 @RestController
-@RequestMapping("/login")
-@CrossOrigin("*")
+@RequestMapping({"/auth", "/login"})
 public class AuthController {
 
     private final AuthService authService;
@@ -24,6 +24,12 @@ public class AuthController {
 
     @PostMapping
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
-        return ResponseEntity.ok(authService.authenticate(loginRequest));
+        try {
+            LoginResponse response = authService.authenticate(loginRequest);
+            return ResponseEntity.ok(response);
+        } catch (BadCredentialsException | UsernameNotFoundException e) {
+            return ResponseEntity.status(401)
+                    .body(new LoginResponse(null, null));
+        }
     }
 }

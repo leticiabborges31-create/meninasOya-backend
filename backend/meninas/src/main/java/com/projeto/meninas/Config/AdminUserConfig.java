@@ -40,9 +40,6 @@ public class AdminUserConfig implements CommandLineRunner {
         var roleAdmin = roleRepository.findByName(Role.Values.ROLE_ADMIN.name())
                 .orElseGet(() -> roleRepository.save(new Role(Role.Values.ROLE_ADMIN.name())));
 
-        roleRepository.findByName(Role.Values.ROLE_BASIC.name())
-                .orElseGet(() -> roleRepository.save(new Role(Role.Values.ROLE_BASIC.name())));
-
         var usuarioAdmin = usuarioRepository.findByUsername(adminUsername);
 
         usuarioAdmin.ifPresentOrElse(
