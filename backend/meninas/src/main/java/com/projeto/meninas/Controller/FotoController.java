@@ -11,7 +11,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/foto")
 @RequiredArgsConstructor
-@CrossOrigin("*")
 public class FotoController {
 
     private final FotoService service;

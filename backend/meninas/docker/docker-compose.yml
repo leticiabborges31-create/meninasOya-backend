@@ -1,14 +1,15 @@
-version: '3.8'
-
 services:
-  mysql:
-    image: mysql:8
+  postgres:
+    image: postgres:16
+    container_name: meninas_db_test
     ports:
-      - "3306:3306"
-    expose:
-      - "3306"
+      - "5433:5432"
     environment:
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: 123
-      MYSQL_DATABASE: mydb
-      MYSQL_ROOT_PASSWORD: 123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: meninas_test
+    volumes:
+      - meninas_test_data:/var/lib/postgresql/data
+
+volumes:
+  meninas_test_data:

@@ -3,6 +3,8 @@ package com.projeto.meninas.Entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -41,6 +43,11 @@ public class Professor implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @NotBlank(message = "CPF e obrigatorio")
+    @Pattern(regexp = "\\d{11}", message = "CPF deve conter 11 digitos numericos (sem pontuacao)")
+    @Column(nullable = false, unique = true, length = 11)
+    private String cpf;
+
     @NotBlank(message = "Nome e obrigatorio")
     @Column(nullable = false)
     private String nome;
@@ -59,13 +66,17 @@ public class Professor implements Serializable {
     @Column(nullable = false)
     private String escola;
 
-    @NotBlank(message = "Link do curriculo Lattes e obrigatorio")
-    @Pattern(regexp = "https?://.*", message = "Link do curriculo Lattes deve ser uma URL valida")
-    @Column(nullable = false)
+    @Column
     private String linkCurriculoLattes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private ProfessorStatus status = ProfessorStatus.PENDENTE;
 
     @JsonIgnore
     @OneToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false, unique = true)
     private Usuario usuario;
 }
+

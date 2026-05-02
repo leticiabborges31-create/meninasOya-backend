@@ -13,8 +13,8 @@ public class CorsConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Origem específica (obrigatório com credenciais)
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        // Origens permitidas (dev: Vite usa 5173 e 5174 quando uma porta esta ocupada)
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:5174"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
 
