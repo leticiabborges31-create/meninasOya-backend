@@ -28,11 +28,14 @@ public class AtividadeController {
             @RequestPart String titulo,
             @RequestPart String descricao,
             @RequestPart String data,
+            @RequestPart(required = false) String localizacao,
             @RequestPart(required = false) MultipartFile foto,
+            @RequestPart(required = false) MultipartFile foto2,
+            @RequestPart(required = false) String professorId,
             Authentication authentication
     ) {
-        Atividade atividade = montarAtividade(titulo, descricao, data, foto);
-        Atividade salva = atividadeService.salvar(atividade, authentication.getName());
+        Atividade atividade = montarAtividade(titulo, descricao, data, localizacao, foto, foto2);
+        Atividade salva = atividadeService.salvar(atividade, authentication.getName(), isAdmin(authentication), professorId);
         return ResponseEntity.status(HttpStatus.CREATED).body(salva);
     }
 
@@ -42,10 +45,12 @@ public class AtividadeController {
             @RequestPart String titulo,
             @RequestPart String descricao,
             @RequestPart String data,
+            @RequestPart(required = false) String localizacao,
             @RequestPart(required = false) MultipartFile foto,
+            @RequestPart(required = false) MultipartFile foto2,
             Authentication authentication
     ) {
-        Atividade atividade = montarAtividade(titulo, descricao, data, foto);
+        Atividade atividade = montarAtividade(titulo, descricao, data, localizacao, foto, foto2);
         Atividade atualizada = atividadeService.atualizar(id, atividade, authentication.getName(), isAdmin(authentication));
         return ResponseEntity.ok(atualizada);
     }
@@ -53,6 +58,11 @@ public class AtividadeController {
     @GetMapping
     public ResponseEntity<List<Atividade>> listar() {
         return ResponseEntity.ok(atividadeService.listarAtividades());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Atividade> buscarPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(atividadeService.buscarPorId(id));
     }
 
     @GetMapping("/{id}/foto")
@@ -73,17 +83,36 @@ public class AtividadeController {
                 .body(atividade.getFotoDados());
     }
 
+    @GetMapping("/{id}/foto2")
+    public ResponseEntity<byte[]> buscarFoto2(@PathVariable Long id) {
+        var atividade = atividadeService.buscarPorId(id);
+
+        if (!atividade.isTemFoto2()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Atividade sem segunda foto");
+        }
+
+        var contentType = atividade.getFoto2ContentType() != null
+                ? MediaType.parseMediaType(atividade.getFoto2ContentType())
+                : MediaType.APPLICATION_OCTET_STREAM;
+
+        return ResponseEntity.ok()
+                .contentType(contentType)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + atividade.getFoto2NomeArquivo() + "\"")
+                .body(atividade.getFoto2Dados());
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id, Authentication authentication) {
         atividadeService.deletar(id, authentication.getName(), isAdmin(authentication));
         return ResponseEntity.ok().build();
     }
 
-    private Atividade montarAtividade(String titulo, String descricao, String data, MultipartFile foto) {
+    private Atividade montarAtividade(String titulo, String descricao, String data, String localizacao, MultipartFile foto, MultipartFile foto2) {
         Atividade atividade = new Atividade();
         atividade.setTitulo(titulo);
         atividade.setDescricao(descricao);
         atividade.setData(data);
+        atividade.setLocalizacao(localizacao);
 
         if (foto != null && !foto.isEmpty()) {
             try {
@@ -92,6 +121,16 @@ public class AtividadeController {
                 atividade.setFotoDados(foto.getBytes());
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nao foi possivel ler a foto", e);
+            }
+        }
+
+        if (foto2 != null && !foto2.isEmpty()) {
+            try {
+                atividade.setFoto2NomeArquivo(foto2.getOriginalFilename());
+                atividade.setFoto2ContentType(foto2.getContentType());
+                atividade.setFoto2Dados(foto2.getBytes());
+            } catch (IOException e) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nao foi possivel ler a segunda foto", e);
             }
         }
 
