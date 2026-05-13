@@ -17,8 +17,16 @@ public class AtividadeService {
     private final AtividadeRepository repository;
     private final ProfessorService professorService;
 
-    public Atividade salvar(Atividade atividade, String username) {
-        Professor professor = professorService.buscarPorUsername(username);
+    public Atividade salvar(Atividade atividade, String username, boolean isAdmin, String professorId) {
+        Professor professor;
+        if (isAdmin) {
+            if (professorId == null || professorId.isBlank()) {
+                throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "Selecione um professor para a atividade");
+            }
+            professor = professorService.buscarPorId(Long.parseLong(professorId));
+        } else {
+            professor = professorService.buscarPorUsername(username);
+        }
         atividade.setProfessor(professor);
         return repository.save(atividade);
     }
@@ -33,11 +41,18 @@ public class AtividadeService {
         existente.setTitulo(payload.getTitulo());
         existente.setDescricao(payload.getDescricao());
         existente.setData(payload.getData());
+        existente.setLocalizacao(payload.getLocalizacao());
 
         if (payload.getFotoDados() != null) {
             existente.setFotoNomeArquivo(payload.getFotoNomeArquivo());
             existente.setFotoContentType(payload.getFotoContentType());
             existente.setFotoDados(payload.getFotoDados());
+        }
+
+        if (payload.getFoto2Dados() != null) {
+            existente.setFoto2NomeArquivo(payload.getFoto2NomeArquivo());
+            existente.setFoto2ContentType(payload.getFoto2ContentType());
+            existente.setFoto2Dados(payload.getFoto2Dados());
         }
 
         return repository.save(existente);
