@@ -62,6 +62,10 @@ public class AtividadeService {
         return repository.findAll();
     }
 
+    public List<Atividade> listarPorProfessor(String username) {
+        return repository.findByProfessorUsuarioUsernameIgnoreCase(username);
+    }
+
     public Atividade buscarPorId(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Atividade nao encontrada"));
