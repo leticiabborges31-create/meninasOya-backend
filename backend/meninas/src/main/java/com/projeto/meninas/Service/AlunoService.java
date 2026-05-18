@@ -1,9 +1,14 @@
 package com.projeto.meninas.Service;
 
 
+import com.projeto.meninas.DTO.AlunoRequest;
 import com.projeto.meninas.Entity.Aluno;
+import com.projeto.meninas.Entity.Escola;
 import com.projeto.meninas.Repository.AlunoRepository;
+import com.projeto.meninas.Repository.EscolaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -11,9 +16,11 @@ import java.util.List;
 public class AlunoService {
 
     private final AlunoRepository alunoRepository;
+    private final EscolaRepository escolaRepository;
 
-    public AlunoService(AlunoRepository alunoRepository) {
+    public AlunoService(AlunoRepository alunoRepository, EscolaRepository escolaRepository) {
         this.alunoRepository = alunoRepository;
+        this.escolaRepository = escolaRepository;
     }
 
     public List<Aluno> listarTodos(String q) {
@@ -28,26 +35,30 @@ public class AlunoService {
                 .orElseThrow(() -> new RuntimeException("Aluno não encontrado"));
     }
 
-    public Aluno criar(Aluno aluno) {
+    public Aluno criar(AlunoRequest req) {
+        Escola escola = req.escolaId() != null
+                ? escolaRepository.findById(req.escolaId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escola não encontrada"))
+                : null;
+        Aluno aluno = Aluno.builder()
+                .nome(req.nome())
+                .idade(req.idade())
+                .uf(req.uf())
+                .escola(escola)
+                .build();
         return alunoRepository.save(aluno);
     }
 
-    public Aluno atualizar(Long id, Aluno aluno) {
+    public Aluno atualizar(Long id, AlunoRequest req) {
         Aluno existente = buscarPorId(id);
-
-        if (aluno.getNome() != null) {
-            existente.setNome(aluno.getNome());
+        if (req.nome() != null) existente.setNome(req.nome());
+        if (req.idade() != null) existente.setIdade(req.idade());
+        if (req.uf() != null) existente.setUf(req.uf());
+        if (req.escolaId() != null) {
+            Escola escola = escolaRepository.findById(req.escolaId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escola não encontrada"));
+            existente.setEscola(escola);
         }
-        if (aluno.getIdade() != null) {
-            existente.setIdade(aluno.getIdade());
-        }
-        if (aluno.getEstado() != null) {
-            existente.setEstado(aluno.getEstado());
-        }
-        if (aluno.getEscola() != null) {
-            existente.setEscola(aluno.getEscola());
-        }
-
         return alunoRepository.save(existente);
     }
 

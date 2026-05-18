@@ -1,14 +1,10 @@
 package com.projeto.meninas.Entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,9 +41,9 @@ public class Aluno implements Serializable {
     @Column(name = "uf", nullable = false, length = 2)
     private String uf;
 
-    @NotBlank(message = "Escola e obrigatoria")
-    @Column(nullable = false)
-    private String escola;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "escola_id")
+    private Escola escola;
 
     public String getEstado() {
         return uf;

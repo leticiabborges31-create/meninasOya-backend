@@ -1,5 +1,6 @@
 package com.projeto.meninas.Controller;
 
+import com.projeto.meninas.DTO.AlunoRequest;
 import com.projeto.meninas.Entity.Aluno;
 import com.projeto.meninas.Service.AlunoService;
 import jakarta.validation.Valid;
@@ -34,15 +35,15 @@ public class AlunoController {
 
     @PostMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_PROFESSOR')")
-    public ResponseEntity<Aluno> criar(@Valid @RequestBody Aluno aluno) {
-        Aluno salvo = alunoService.criar(aluno);
+    public ResponseEntity<Aluno> criar(@Valid @RequestBody AlunoRequest req) {
+        Aluno salvo = alunoService.criar(req);
         return ResponseEntity.created(URI.create("/api/alunos/" + salvo.getId())).body(salvo);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_PROFESSOR')")
-    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @Valid @RequestBody Aluno aluno) {
-        return ResponseEntity.ok(alunoService.atualizar(id, aluno));
+    public ResponseEntity<Aluno> atualizar(@PathVariable Long id, @Valid @RequestBody AlunoRequest req) {
+        return ResponseEntity.ok(alunoService.atualizar(id, req));
     }
 
     @DeleteMapping("/{id}")

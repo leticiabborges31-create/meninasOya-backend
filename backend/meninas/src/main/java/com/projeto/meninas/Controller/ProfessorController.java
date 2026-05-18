@@ -37,6 +37,12 @@ public class ProfessorController {
         this.professorService = professorService;
     }
 
+    @GetMapping("/me")
+    @PreAuthorize("hasAuthority('SCOPE_PROFESSOR')")
+    public ResponseEntity<Professor> meuPerfil(Authentication authentication) {
+        return ResponseEntity.ok(professorService.buscarPorUsername(authentication.getName()));
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<List<Professor>> listarTodos(@RequestParam(value = "q", required = false) String q) {
