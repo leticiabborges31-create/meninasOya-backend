@@ -5,18 +5,18 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -24,6 +24,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "professores")
@@ -52,15 +53,19 @@ public class Professor implements Serializable {
     @Column(nullable = false)
     private String nome;
 
-    @Min(value = 0, message = "Idade invalida")
-    @Max(value = 150, message = "Idade invalida")
-    @Column(nullable = false)
+    @Column
     private Integer idade;
 
-    @NotBlank(message = "UF e obrigatoria")
-    @Size(min = 2, max = 2, message = "UF deve ser a sigla com 2 letras")
-    @Column(nullable = false, length = 2)
-    private String uf;
+    @Column
+    private LocalDate periodoVigenciaInicio;
+
+    @Column
+    private LocalDate periodoVigenciaFim;
+
+    @NotNull(message = "Cidade é obrigatória")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cidade_id", nullable = false)
+    private Cidade cidade;
 
     @NotBlank(message = "Escola e obrigatoria")
     @Column(nullable = false)

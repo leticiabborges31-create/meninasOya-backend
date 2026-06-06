@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth", "/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/professores/cadastro").permitAll()
                         .requestMatchers(HttpMethod.GET, "/atividades", "/atividades/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cidades", "/api/cidades/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/escolas/simples").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())))

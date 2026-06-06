@@ -58,8 +58,13 @@ public class AtividadeService {
         return repository.save(existente);
     }
 
-    public List<Atividade> listarAtividades() {
-        return repository.findAll();
+    public List<Atividade> listarAtividades(String uf, Long cidadeId) {
+        if ((uf == null || uf.isBlank()) && cidadeId == null) {
+            return repository.findAll();
+        }
+        return repository.findComFiltros(
+                (uf != null && !uf.isBlank()) ? uf : null,
+                cidadeId);
     }
 
     public List<Atividade> listarPorProfessor(String username) {

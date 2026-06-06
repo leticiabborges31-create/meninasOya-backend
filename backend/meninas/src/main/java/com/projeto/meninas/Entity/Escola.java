@@ -3,7 +3,6 @@ package com.projeto.meninas.Entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.io.Serializable;
@@ -30,15 +29,23 @@ public class Escola implements Serializable {
     @Column(nullable = false, length = 30)
     private TipoEscola tipo;
 
-    @NotBlank(message = "Cidade é obrigatória")
-    @Column(nullable = false)
-    private String cidade;
-
-    @NotBlank(message = "UF é obrigatória")
-    @Size(min = 2, max = 2, message = "UF deve ser a sigla com 2 letras")
-    @Column(nullable = false, length = 2)
-    private String uf;
+    @NotNull(message = "Cidade é obrigatória")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "cidade_id", nullable = false)
+    private Cidade cidade;
 
     @Column
     private String emailContato;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private NivelEducacional nivelEducacional;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private NaturezaJuridica natureza;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private EsferaAdministrativa esferaAdministrativa;
 }

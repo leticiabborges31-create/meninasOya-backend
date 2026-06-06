@@ -3,8 +3,10 @@ package com.projeto.meninas.Service;
 
 import com.projeto.meninas.DTO.AlunoRequest;
 import com.projeto.meninas.Entity.Aluno;
+import com.projeto.meninas.Entity.Cidade;
 import com.projeto.meninas.Entity.Escola;
 import com.projeto.meninas.Repository.AlunoRepository;
+import com.projeto.meninas.Repository.CidadeRepository;
 import com.projeto.meninas.Repository.EscolaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,10 +19,13 @@ public class AlunoService {
 
     private final AlunoRepository alunoRepository;
     private final EscolaRepository escolaRepository;
+    private final CidadeRepository cidadeRepository;
 
-    public AlunoService(AlunoRepository alunoRepository, EscolaRepository escolaRepository) {
+    public AlunoService(AlunoRepository alunoRepository, EscolaRepository escolaRepository,
+                        CidadeRepository cidadeRepository) {
         this.alunoRepository = alunoRepository;
         this.escolaRepository = escolaRepository;
+        this.cidadeRepository = cidadeRepository;
     }
 
     public List<Aluno> listarTodos(String q) {
@@ -40,11 +45,16 @@ public class AlunoService {
                 ? escolaRepository.findById(req.escolaId())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escola não encontrada"))
                 : null;
+        Cidade cidade = req.cidadeId() != null
+                ? cidadeRepository.findById(req.cidadeId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada"))
+                : null;
         Aluno aluno = Aluno.builder()
                 .nome(req.nome())
                 .idade(req.idade())
-                .uf(req.uf())
+                .cidade(cidade)
                 .escola(escola)
+                .vinculo(req.vinculo())
                 .build();
         return alunoRepository.save(aluno);
     }
@@ -53,7 +63,11 @@ public class AlunoService {
         Aluno existente = buscarPorId(id);
         if (req.nome() != null) existente.setNome(req.nome());
         if (req.idade() != null) existente.setIdade(req.idade());
-        if (req.uf() != null) existente.setUf(req.uf());
+        if (req.cidadeId() != null) {
+            Cidade cidade = cidadeRepository.findById(req.cidadeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada"));
+            existente.setCidade(cidade);
+        }
         if (req.escolaId() != null) {
             Escola escola = escolaRepository.findById(req.escolaId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escola não encontrada"));
