@@ -2,8 +2,10 @@ package com.projeto.meninas.Service;
 
 import com.projeto.meninas.DTO.EscolaRequest;
 import com.projeto.meninas.DTO.EscolaResponse;
+import com.projeto.meninas.Entity.Cidade;
 import com.projeto.meninas.Entity.Escola;
 import com.projeto.meninas.Repository.AlunoRepository;
+import com.projeto.meninas.Repository.CidadeRepository;
 import com.projeto.meninas.Repository.EscolaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,18 +18,22 @@ public class EscolaService {
 
     private final EscolaRepository escolaRepository;
     private final AlunoRepository alunoRepository;
+    private final CidadeRepository cidadeRepository;
 
-    public EscolaService(EscolaRepository escolaRepository, AlunoRepository alunoRepository) {
+    public EscolaService(EscolaRepository escolaRepository, AlunoRepository alunoRepository,
+                         CidadeRepository cidadeRepository) {
         this.escolaRepository = escolaRepository;
         this.alunoRepository = alunoRepository;
+        this.cidadeRepository = cidadeRepository;
     }
 
     public List<EscolaResponse> listarTodas() {
         return escolaRepository.findAll().stream()
                 .map(e -> new EscolaResponse(
                         e.getId(), e.getNome(), e.getTipo(),
-                        e.getCidade(), e.getUf(), e.getEmailContato(),
-                        alunoRepository.countByEscola_Id(e.getId())))
+                        e.getCidade(), e.getEmailContato(),
+                        alunoRepository.countByEscola_Id(e.getId()),
+                        e.getNivelEducacional(), e.getNatureza(), e.getEsferaAdministrativa()))
                 .toList();
     }
 
@@ -41,12 +47,16 @@ public class EscolaService {
     }
 
     public Escola criar(EscolaRequest req) {
+        Cidade cidade = cidadeRepository.findById(req.cidadeId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cidade não encontrada"));
         Escola escola = Escola.builder()
                 .nome(req.nome())
                 .tipo(req.tipo())
-                .cidade(req.cidade())
-                .uf(req.uf())
+                .cidade(cidade)
                 .emailContato(req.emailContato())
+                .nivelEducacional(req.nivelEducacional())
+                .natureza(req.natureza())
+                .esferaAdministrativa(req.esferaAdministrativa())
                 .build();
         return escolaRepository.save(escola);
     }
@@ -55,9 +65,15 @@ public class EscolaService {
         Escola existente = buscarPorId(id);
         if (req.nome() != null) existente.setNome(req.nome());
         if (req.tipo() != null) existente.setTipo(req.tipo());
-        if (req.cidade() != null) existente.setCidade(req.cidade());
-        if (req.uf() != null) existente.setUf(req.uf());
+        if (req.cidadeId() != null) {
+            Cidade cidade = cidadeRepository.findById(req.cidadeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cidade não encontrada"));
+            existente.setCidade(cidade);
+        }
         existente.setEmailContato(req.emailContato());
+        existente.setNivelEducacional(req.nivelEducacional());
+        existente.setNatureza(req.natureza());
+        existente.setEsferaAdministrativa(req.esferaAdministrativa());
         return escolaRepository.save(existente);
     }
 

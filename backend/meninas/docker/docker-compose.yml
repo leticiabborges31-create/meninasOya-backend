@@ -1,15 +1,15 @@
 services:
   postgres:
     image: postgres:16
-    container_name: meninas_db_test
+    container_name: meninas_db
     ports:
       - "5433:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
-      POSTGRES_DB: meninas_test
+      POSTGRES_DB: meninas
     volumes:
-      - meninas_test_data:/var/lib/postgresql/data
+      - meninas_data:/var/lib/postgresql/data
 
 volumes:
-  meninas_test_data:
+  meninas_data:

@@ -57,8 +57,10 @@ public class AtividadeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Atividade>> listar() {
-        return ResponseEntity.ok(atividadeService.listarAtividades());
+    public ResponseEntity<List<Atividade>> listar(
+            @RequestParam(required = false) String uf,
+            @RequestParam(required = false) Long cidadeId) {
+        return ResponseEntity.ok(atividadeService.listarAtividades(uf, cidadeId));
     }
 
     @GetMapping("/minhas")

@@ -29,9 +29,8 @@ public class EscolaController {
         return ResponseEntity.ok(escolaService.listarTodas());
     }
 
-    /** Lista simplificada para uso em selects (ID + nome + tipo). */
+    /** Lista simplificada para uso em selects (ID + nome + tipo). Público. */
     @GetMapping("/simples")
-    @PreAuthorize("hasAnyAuthority('SCOPE_ADMIN', 'SCOPE_PROFESSOR')")
     public ResponseEntity<List<Escola>> listarSimples() {
         return ResponseEntity.ok(escolaService.listarTodasSimples());
     }

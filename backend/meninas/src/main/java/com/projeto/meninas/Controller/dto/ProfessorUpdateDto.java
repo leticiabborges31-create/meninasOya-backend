@@ -1,9 +1,9 @@
 package com.projeto.meninas.Controller.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
+
+import java.time.LocalDate;
 
 public record ProfessorUpdateDto(
         @Email(message = "Email invalido")
@@ -14,15 +14,16 @@ public record ProfessorUpdateDto(
 
         String nome,
 
-        @Min(value = 0, message = "Idade invalida")
-        @Max(value = 150, message = "Idade invalida")
         Integer idade,
 
-        @Size(min = 2, max = 2, message = "UF deve ser a sigla com 2 letras")
-        String uf,
+        Long cidadeId,
 
         String escola,
 
-        String linkCurriculoLattes
+        String linkCurriculoLattes,
+
+        LocalDate periodoVigenciaInicio,
+
+        LocalDate periodoVigenciaFim
 ) {
 }

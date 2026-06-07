@@ -2,10 +2,12 @@ package com.projeto.meninas.Service;
 
 import com.projeto.meninas.Controller.dto.ProfessorRequestDto;
 import com.projeto.meninas.Controller.dto.ProfessorUpdateDto;
+import com.projeto.meninas.Entity.Cidade;
 import com.projeto.meninas.Entity.Professor;
 import com.projeto.meninas.Entity.ProfessorStatus;
 import com.projeto.meninas.Entity.Role;
 import com.projeto.meninas.Entity.Usuario;
+import com.projeto.meninas.Repository.CidadeRepository;
 import com.projeto.meninas.Repository.ProfessorRepository;
 import com.projeto.meninas.Repository.RoleRepository;
 import com.projeto.meninas.Repository.UsuarioRepository;
@@ -26,6 +28,7 @@ public class ProfessorService {
     private final ProfessorRepository professorRepository;
     private final UsuarioRepository usuarioRepository;
     private final RoleRepository roleRepository;
+    private final CidadeRepository cidadeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public List<Professor> listarTodos(String q) {
@@ -83,14 +86,19 @@ public class ProfessorService {
         usuario.setRoles(new HashSet<>(Set.of(roleProfessor)));
         usuario = usuarioRepository.save(usuario);
 
+        Cidade cidade = cidadeRepository.findById(dto.cidadeId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada"));
+
         Professor professor = Professor.builder()
                 .email(dto.email().trim().toLowerCase())
                 .cpf(dto.cpf().replaceAll("\\D", ""))
                 .nome(dto.nome())
                 .idade(dto.idade())
-                .uf(dto.uf().trim().toUpperCase())
+                .cidade(cidade)
                 .escola(dto.escola())
                 .linkCurriculoLattes(dto.linkCurriculoLattes())
+                .periodoVigenciaInicio(dto.periodoVigenciaInicio())
+                .periodoVigenciaFim(dto.periodoVigenciaFim())
                 .status(status)
                 .usuario(usuario)
                 .build();
@@ -117,8 +125,10 @@ public class ProfessorService {
         if (dto.idade() != null) {
             existente.setIdade(dto.idade());
         }
-        if (dto.uf() != null && !dto.uf().isBlank()) {
-            existente.setUf(dto.uf().trim().toUpperCase());
+        if (dto.cidadeId() != null) {
+            Cidade cidade = cidadeRepository.findById(dto.cidadeId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade não encontrada"));
+            existente.setCidade(cidade);
         }
         if (dto.escola() != null && !dto.escola().isBlank()) {
             existente.setEscola(dto.escola());
@@ -126,7 +136,12 @@ public class ProfessorService {
         if (dto.linkCurriculoLattes() != null && !dto.linkCurriculoLattes().isBlank()) {
             existente.setLinkCurriculoLattes(dto.linkCurriculoLattes());
         }
-
+        if (dto.periodoVigenciaInicio() != null) {
+            existente.setPeriodoVigenciaInicio(dto.periodoVigenciaInicio());
+        }
+        if (dto.periodoVigenciaFim() != null) {
+            existente.setPeriodoVigenciaFim(dto.periodoVigenciaFim());
+        }
         usuarioRepository.save(usuario);
         return professorRepository.save(existente);
     }

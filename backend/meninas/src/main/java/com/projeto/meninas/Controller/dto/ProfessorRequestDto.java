@@ -1,11 +1,12 @@
 package com.projeto.meninas.Controller.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+
+import java.time.LocalDate;
 
 public record ProfessorRequestDto(
         @NotBlank(message = "Email e obrigatorio")
@@ -23,18 +24,19 @@ public record ProfessorRequestDto(
         @NotBlank(message = "Nome e obrigatorio")
         String nome,
 
-        @Min(value = 0, message = "Idade invalida")
-        @Max(value = 150, message = "Idade invalida")
         Integer idade,
 
-        @NotBlank(message = "UF e obrigatoria")
-        @Size(min = 2, max = 2, message = "UF deve ser a sigla com 2 letras")
-        String uf,
+        @NotNull(message = "Cidade é obrigatória")
+        Long cidadeId,
 
         @NotBlank(message = "Escola e obrigatoria")
         String escola,
 
-        String linkCurriculoLattes
+        String linkCurriculoLattes,
+
+        LocalDate periodoVigenciaInicio,
+
+        LocalDate periodoVigenciaFim
 ) {
 }
 
