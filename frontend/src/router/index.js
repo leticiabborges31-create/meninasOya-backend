@@ -22,7 +22,7 @@ const router = createRouter({
       name: 'painel',
       component: Painel,
       beforeEnter: () => {
-        if (localStorage.getItem('logado') !== 'true') {
+        if (!localStorage.getItem('token')) {
           return '/admin'
         }
       }
