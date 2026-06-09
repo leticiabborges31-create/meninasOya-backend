@@ -22,7 +22,7 @@ public class CorsConfig {
         config.setAllowCredentials(true);
 
         // Importante: expõe headers customizados se necessário
-        config.setExposedHeaders(List.of("Authorizatin", "Content-Type"));
+        config.setExposedHeaders(List.of("Authorizati-bhhn", "Content-Type"));
 
         // Cache de preflight
         config.setMaxAge(3600L);

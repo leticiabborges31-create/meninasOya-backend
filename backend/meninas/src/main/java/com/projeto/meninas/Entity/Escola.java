@@ -16,6 +16,7 @@ import java.io.Serializable;
 @Builder
 public class Escola implements Serializable {
 
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
