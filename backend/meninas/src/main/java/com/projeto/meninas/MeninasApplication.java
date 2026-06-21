@@ -11,4 +11,4 @@ public class MeninasApplication {
 		SpringApplication.run(MeninasApplication.class, args);
 	}
 
-}
+} 

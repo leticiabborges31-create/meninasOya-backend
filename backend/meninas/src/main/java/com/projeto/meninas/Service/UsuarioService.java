@@ -1,60 +1,59 @@
 package com.projeto.meninas.Service;
 
+import com.projeto.meninas.Controller.dto.LoginRequest;
 import com.projeto.meninas.Entity.Usuario;
 import com.projeto.meninas.Repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
 
     private final UsuarioRepository repository;
+    private final BCryptPasswordEncoder encoder;
 
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    // ✅ CADASTRAR USUÁRIO (CRIPTOGRAFANDO SENHA)
+    // ✅ CADASTRAR
     public Usuario salvarUsuario(Usuario usuario) {
-        usuario.setSenha(encoder.encode(usuario.getSenha()));
+        if (usuario.getPassword() != null && !usuario.getPassword().startsWith("$2a$")) {
+            usuario.setPassword(encoder.encode(usuario.getPassword()));
+        }
         return repository.save(usuario);
     }
 
-    // ✅ BUSCAR POR EMAIL
-    public Usuario buscarUsuarioPorEmail(String email) {
-        return repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email não encontrado"));
+    // ✅ BUSCAR
+    public Usuario buscarUsuarioPorUsername(String username) {
+        return repository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
     // ✅ DELETAR
-    public void deletarUsuarioPorEmail(String email) {
-        repository.deleteByEmail(email);
+    public void deletarUsuarioPorUsername(String username) {
+        Usuario usuario = repository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        repository.delete(usuario);
     }
 
-    // ✅ ATUALIZAR (COM SEGURANÇA NA SENHA)
-    public Usuario atualizarUsuarioPorId(Long id, Usuario usuario) {
+    // ✅ ATUALIZAR
+    public Usuario atualizarUsuarioPorId(UUID id, Usuario usuario) {
         Usuario entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        if (usuario.getNome() != null) entity.setNome(usuario.getNome());
-        if (usuario.getEmail() != null) entity.setEmail(usuario.getEmail());
-
-        // 🔐 CRIPTOGRAFA SE ALTERAR SENHA
-        if (usuario.getSenha() != null) {
-            entity.setSenha(encoder.encode(usuario.getSenha()));
+        if (usuario.getUsername() != null && !usuario.getUsername().isBlank()) {
+            entity.setUsername(usuario.getUsername());
         }
 
-        if (usuario.getTipoUsuario() != null) {
-            entity.setTipoUsuario(usuario.getTipoUsuario());
+        if (usuario.getPassword() != null && !usuario.getPassword().isBlank()) {
+            entity.setPassword(encoder.encode(usuario.getPassword()));
         }
 
         return repository.save(entity);
-    }
-
-    // ✅ LOGIN SEGURO
-    public boolean autenticar(String email, String senha) {
-        return repository.findByEmail(email)
-                .map(u -> encoder.matches(senha, u.getSenha()))
-                .orElse(false);
     }
 }

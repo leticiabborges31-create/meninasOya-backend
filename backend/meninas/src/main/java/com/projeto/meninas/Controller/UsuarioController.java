@@ -1,64 +1,70 @@
 package com.projeto.meninas.Controller;
 
+import com.projeto.meninas.Controller.dto.CreateUserDto;
+import com.projeto.meninas.Entity.Role;
 import com.projeto.meninas.Entity.Usuario;
-import com.projeto.meninas.Security.JwtUtil;
-import com.projeto.meninas.Service.UsuarioService;
-import lombok.RequiredArgsConstructor;
+import com.projeto.meninas.Repository.RoleRepository;
+import com.projeto.meninas.Repository.UsuarioRepository;
+import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Map;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/usuarios")
-@RequiredArgsConstructor
-@CrossOrigin("*")
 public class UsuarioController {
 
-    private final UsuarioService usuarioService;
-    private final JwtUtil jwtUtil;
+    private final UsuarioRepository usuarioRepository;
+    private final RoleRepository roleRepository;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    // ✅ CADASTRO
-    @PostMapping
-    public ResponseEntity<Void> salvarUsuario(@RequestBody Usuario usuario) {
-        usuarioService.salvarUsuario(usuario);
-        return ResponseEntity.ok().build();
+    public UsuarioController(UsuarioRepository usuarioRepository,
+                             RoleRepository roleRepository) {
+        this.usuarioRepository = usuarioRepository;
+        this.roleRepository = roleRepository;
+        this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
     }
 
-    // ✅ LOGIN COM TOKEN
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @Transactional
+    @PostMapping("/usuario")
+    public ResponseEntity<Void> newUser(@Valid @RequestBody CreateUserDto dto) {
+        var roleFromDb = roleRepository.findByName(dto.role())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Role nao encontrada"));
 
-        boolean autenticado = usuarioService.autenticar(
-                body.get("email"),
-                body.get("senha")
-        );
-
-        if (!autenticado) {
-            return ResponseEntity.status(401).body("Email ou senha inválidos");
+        if (usuarioRepository.findByUsernameIgnoreCase(dto.username()).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Usuario ja cadastrado");
         }
 
-        String token = jwtUtil.gerarToken(body.get("email"));
-
-        return ResponseEntity.ok(Map.of("token", token));
-    }
-
-    // ✅ BUSCAR
-    @GetMapping
-    public ResponseEntity<Usuario> buscarPorEmail(@RequestParam String email) {
-        return ResponseEntity.ok(usuarioService.buscarUsuarioPorEmail(email));
-    }
-
-    // ✅ DELETAR
-    @DeleteMapping
-    public ResponseEntity<Void> deletar(@RequestParam String email) {
-        usuarioService.deletarUsuarioPorEmail(email);
+        usuarioRepository.save(buildUser(dto.username(), dto.password(), roleFromDb));
         return ResponseEntity.ok().build();
     }
 
-    // ✅ ATUALIZAR
-    @PutMapping
-    public ResponseEntity<Usuario> atualizar(@RequestParam Long id, @RequestBody Usuario usuario) {
-        return ResponseEntity.ok(usuarioService.atualizarUsuarioPorId(id, usuario));
+    @GetMapping("/usuario")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    public ResponseEntity<List<Usuario>> listUsers() {
+        var usuarios = usuarioRepository.findAll();
+        return ResponseEntity.ok(usuarios);
+    }
+
+    private Usuario buildUser(String username, String rawPassword, Role role) {
+        var usuario = new Usuario();
+        usuario.setUsername(username);
+        usuario.setPassword(bCryptPasswordEncoder.encode(rawPassword));
+        usuario.setRoles(new HashSet<>(Set.of(role)));
+        return usuario;
     }
 }
